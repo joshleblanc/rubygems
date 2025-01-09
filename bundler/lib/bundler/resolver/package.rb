@@ -13,17 +13,21 @@ module Bundler
     # * The dependency explicit set in the Gemfile for this gem (if any).
     #
     class Package
-      attr_reader :name, :platforms, :dependency, :locked_version
+      attr_reader :name, :platforms, :dependency
 
       def initialize(name, platforms, locked_specs:, unlock:, prerelease: false, prefer_local: false, dependency: nil)
         @name = name
         @platforms = platforms
-        @locked_version = locked_specs.version_for(name)
+        @locked_specs = locked_specs
         @unlock = unlock
-        @dependency = dependency || Dependency.new(name, @locked_version)
+        @dependency = dependency || Dependency.new(name, locked_version)
         @top_level = !dependency.nil?
-        @prerelease = @dependency.prerelease? || @locked_version&.prerelease? || prerelease ? :consider_first : :ignore
+        @prerelease = @dependency.prerelease? || locked_version&.prerelease? || prerelease ? :consider_first : :ignore
         @prefer_local = prefer_local
+      end
+
+      def locked_version
+        @locked_specs.version_for(name)
       end
 
       def platform_specs(specs)
